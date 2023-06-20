@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Saas game</title>
+</head>
+<body>
+  <div id="content"></div>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script
+  src="https://code.jquery.com/jquery-3.7.0.min.js"
+  integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+  crossorigin="anonymous"></script>
+  <script>
+    var MENU = 0;
+    var PLAYING = 1;
+    var NEWGAME = "newgame";
+    var BUY = "buy";
+    var products = {
+      "dns": [{
+        name: "Domain name",
+        price: 10,
+        recurring: true
+      }]
+    }
+    const gameState = {
+      "state": MENU,
+      "alerts": [],
+      "money": 0,
+      "salary": 0,
+      "visitors": 0,
+      "customers": 0,
+      "income": 0,
+      "purchases": {
+        "dns": 
+          [0]
+      }
+      
+    }
+    var salaries = {
+      "professional": 2200,
+      "minimum": 1200,
+      "unemployed": 0,
+      "public": 1600
+    }
+    
+    
+      document.getElementById('content').innerHTML =
+      marked.parse(`
+# SAAS Game \n
+Welcome to the Saas game, in this game you run a website and need to handle users and customers to your website.
+<p>Starting money <input id="startmoney" type="text" value="1000"></input></p>
+<select name="job" id="job">
+    <option value="">Please select your job</option>
+    <option value="unemployed">Unemployed (income: £0</option>
+    <option value="minimum">Minimum wage (income: £1200</option>
+    <option value="public">Public sector (income: £1600</option>
+    <option value="professional">Professional (income: £2200)</option>
+</select>
+<button id="newgame" data-action="newgame">New game</button>`);
+   
+     $(document).add("button").on("click", function (event) {
+      console.log("button press");
+      var action = $(event.target).data("action");
+      console.log(action);
+      switch (action) {
+        case BUY:
+          var item = $(event.target).data("item");
+          var section = $(event.target).data("section");
+          gameState.purchases[section][item]++;
+          gameState.money -= products[section][item].price;
+          setTimeout(tick, 0);
+          break
+        case NEWGAME:
+          
+          gameState.money = $("#startmoney").val();
+          gameState.salary = salaries[$("#job").val()];
+          console.log(gameState.salary);
+          console.log("newgame");
+          gameState.state = PLAYING;
+          break;
+      }
+      
+    });
+    function tick() {
+      console.log("tick");
+       
+        var elements = [];
+        elements.push(`
+# SAAS Game \n
+Money: **£${gameState.money}**
+
+Salary: **£${gameState.salary}**
+
+Customers: **${gameState.customers}**
+
+Visitors: **${gameState.visitors}**
+
+
+
+
+`);
+      console.log(Object.keys(products));
+      var keys = Object.keys(products);
+      for (var i = 0 ; i < keys.length ; i++) {
+        var key = keys[i];
+        elements.push(`
+# ${key.toUpperCase()}
+|Product|Price|Owned|Buy|
+|--|--|--|--|`);
+        console.log(products[key]);
+        for (var i = 0 ; i < products[key].length; i++) {
+elements.push(`|${products[key][i].name}|£${products[key][i].price}|<button data-action="buy" data-item="${i}" data-section="${key}">Buy ${products[key][i].name}</button>|${gameState.purchases[key][i]}|
+        `);
+      }
+    }
+      document.getElementById('content').innerHTML = marked.parse(elements.join("\n"));
+      
+    }
+    var check = null;     
+    function tick1() {
+      
+      if (gameState.state == PLAYING) {
+        clearInterval(check);
+        tick();
+        setInterval(tick, 1000);
+      }
+    }
+    var check = setInterval(tick1, 200);
+   
+    
+  </script>
+</body>
+</html>
